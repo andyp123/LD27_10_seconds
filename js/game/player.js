@@ -14,6 +14,12 @@ function Player(board) {
 	this.board = board;
 }
 
+Player.prototype.gotoStart = function() {
+	if (this.board !== null) {
+		this.cell_index.equals(this.board.data.start);
+	}
+}
+
 Player.prototype.update = function() {
 	var input = this.input;
 	var dx = 0;

@@ -17,11 +17,12 @@ function Device() {
 	this.board.loadData( g_STAGES[0] );
 
 	this.player = new Player(this.board);
-	this.player.cell_index.set(this.board.data.start.x, this.board.data.start.y);
+	this.player.gotoStart();
 
 	this.wave = new Wave(96, 96, 672, 480, 64);
 	this.timer = new Timer(520, 560, 10.0);
 
+	this.current_stage = 0;
 	this.stage_clear = false;
 
 	//controls
@@ -97,15 +98,23 @@ Device.prototype.updateGameState = function() {
 }
 
 Device.prototype.update = function() {
+	var buttons = this.controls.buttons;
+	for (var i = 0; i < buttons.length; ++i) {
+		buttons[i].update();
+	}
+	this.timer.update();
+
 	if (!(this.stage_clear || this.timer.timeOver())) {
-		var buttons = this.controls.buttons;
-		for (var i = 0; i < buttons.length; ++i) {
-			buttons[i].update();
-		}
+		if (this.wasButtonPressed()) this.timer.unpause();
 		this.player.update();
 		this.board.update();
 		this.wave.update();
 		this.updateGameState();
+	} else {
+		if (this.wasButtonPressed()) {
+			if (this.stage_clear) this.current_stage += 1;
+			this.loadStage( this.current_stage );
+		}
 	}
 
 	if (g_DEBUG) {
@@ -116,8 +125,19 @@ Device.prototype.update = function() {
 			this.timer.togglePause();
 		}
 	}
-	this.timer.update();
-	if (this.wasButtonPressed()) this.timer.unpause();
+}
+
+Device.prototype.loadStage = function(stage_number) {
+	var stages = g_STAGES;
+	if (stage_number >= 0 && stage_number < stages.length) {
+		this.board.loadData( g_STAGES[stage_number] );
+		this.player.gotoStart();
+		this.randomizeControls();
+		this.timer.reset();
+		this.stage_clear = false;
+	} else {
+		console.log("Device.prototype.loadStage: ERROR: stage_number out of bounds.");
+	}
 }
 
 Device.prototype.draw = function(ctx, xofs, yofs) {
