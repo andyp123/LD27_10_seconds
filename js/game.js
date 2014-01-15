@@ -12,12 +12,18 @@ function game_queueData() {
 			"img/button_red.png",
 			"img/button_green.png",
 			"img/player.png",
-			"img/cell_test.png"
+			"img/cells.png",
+			"img/timer_back.png",
+			"img/numbers.png",
+			"img/numbers_small.png",
+			"img/exit.png"
 		];
 		g_ASSETMANAGER.queueAssets(data);
 		data = [
+			//"sfx/button22.wav"
 		];
 		g_SOUNDMANAGER.loadSounds(data);
+		g_SOUNDMANAGER.loadSound("BUTTON", "sfx/button12.wav");
 }
 game_queueData();
 

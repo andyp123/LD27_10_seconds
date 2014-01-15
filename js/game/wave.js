@@ -12,11 +12,15 @@ function Wave(minx, miny, maxx, maxy, num_points) {
 }
 
 Wave.prototype.update = function() {
-	var shift = g_GAMETIME_MS / 1000.0;
 	var num_points = this.displacement_y.length;
+	var shift = g_GAMETIME_MS / 1000.0;
+	var start = Math.floor((g_GAMETIME_MS % 2000) / 1000.0 * num_points);
 	for (var i = 0; i < num_points; ++i) {
-		this.displacement_y[i] = Math.cos(10.0 * (i / num_points) - shift);
+		this.displacement_y[i] = 0.125 * Math.cos(10.0 * (i / num_points) - shift);
 	}
+
+	
+	if(start < num_points)	this.displacement_y[start] -= Math.random() * 0.125 + 0.75;
 }
 
 Wave.prototype.draw = function(ctx, xofs, yofs) {

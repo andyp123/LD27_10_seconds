@@ -3,12 +3,14 @@
 /* BUTTON *
 */
 
-function Button(sprite, posx, posy, radius) {
+function Button(sprite, posx, posy, radius, key) {
 	this.sprite = sprite;
 	this.pos = new Vector2(posx, posy);
 	this.radius = radius;
 	this.state = new ButtonState();
 	this.enabled = true;
+
+	this.key = key || null;
 }
 
 Button.prototype.isPressed = function() {
@@ -39,14 +41,21 @@ Button.prototype.update = function() {
 	var camera = g_CAMERA;
 	var x = this.pos.x - mouse.x - camera.pos.x;
 	var y = this.pos.y - mouse.y - camera.pos.y;
-	if (mouse.left.justPressed() && (x * x + y * y < this.radius * this.radius))
-	{
-		if (!state.isPressed()) state.press();
-	} 
-	else if(!mouse.left.isPressed())
-	{
-		if (state.isPressed()) state.release();
+
+	var press = false;
+	var release = false;
+	if (!state.isPressed()) {
+		if (this.key && g_KEYSTATES.justPressed(this.key)) press = true;
+		if (mouse.left.justPressed() && (x * x + y * y < this.radius * this.radius)) press = true;
+	} else {
+		if (!mouse.left.isPressed() && (!this.key || !g_KEYSTATES.isPressed(this.key))) release = true;
 	}
+	
+	if (press) {
+		this.state.press();
+		g_SOUNDMANAGER.playSound("BUTTON");
+	}
+	if (release) this.state.release();
 }
 
 Button.prototype.draw = function(ctx, xofs, yofs) {

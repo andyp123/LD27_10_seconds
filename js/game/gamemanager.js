@@ -28,7 +28,7 @@ GameManager.prototype.update = function() {
 
 	//debug functions
 	if (g_KEYSTATES.isPressed( KEYS.SHIFT ) &&  g_KEYSTATES.justPressed( KEYS.P) ) {
-		console.log(this.device.board.serializeData());		
+		console.log(this.device.board.serializeData());
 	}
 }
 

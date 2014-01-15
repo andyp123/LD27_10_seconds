@@ -15,11 +15,6 @@ function Player(board) {
 }
 
 Player.prototype.update = function() {
-	//FIXME: test only!
-	if (this.cell_index.outOfBounds) {
-	//	this.board.tryMoveToFirstOf(this.cell_index, Board.CELL_TYPE_START)
-	}
-
 	var input = this.input;
 	var dx = 0;
 	var dy = 0;
@@ -28,15 +23,17 @@ Player.prototype.update = function() {
 	if (input["MOVE_DOWN"].justPressed()) dy -=1;
 	if (input["MOVE_UP"].justPressed()) dy +=1;
 
-	if ((dx || dy) && this.board.tryMove(this.cell_index, dx, dy)) {
+	if ((dx || dy) && this.board.tryMove(dx, dy, this.cell_index)) {
 		this.sprite_frame = (this.sprite_frame == 1) ? 0 : 1;
 	}
+
+	//touch any entities (this will call the relevant on touch function)
+	//this.board.touch(this.cell_index);
 }
 
 Player.prototype.draw = function(ctx, xofs, yofs) {
 	var ci = this.cell_index;
-	if (!ci.outOfBounds())
-	{
+	if (!ci.outOfBounds()) {
 		var vector_pool = g_VECTORSCRATCH;
 		vector_pool.use();
 			var pos = vector_pool.get().zero();

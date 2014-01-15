@@ -170,7 +170,7 @@ Util.drawNumber = function(ctx, x, y, num, img, framesX) {
 	y = Math.floor(y);
 	var str = "" + num; //num to string
 	var chWidth = img.width / framesX;
-	var chHeight = chWidth;
+	var chHeight = img.height;
 	var i, ch;
 	for (i = str.length - 1; i >= 0; --i) {
 		ch = str.charCodeAt(i) - 48; //charCode('0') == 48;

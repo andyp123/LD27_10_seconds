@@ -17,9 +17,12 @@ function Device() {
 	this.board.loadData( g_STAGES[0] );
 
 	this.player = new Player(this.board);
-	this.player.cell_index.set(0, 0);
+	this.player.cell_index.set(this.board.data.start.x, this.board.data.start.y);
 
 	this.wave = new Wave(96, 96, 672, 480, 64);
+	this.timer = new Timer(520, 560, 10.0);
+
+	this.stage_clear = false;
 
 	//controls
 	this.controls = {
@@ -28,7 +31,7 @@ function Device() {
 	var buttons = this.controls.buttons;
 	var button_offset_x = 176;
 	var button_offset_y = 608;
-	var buttons_x = 2;
+	var buttons_x = 3;
 	for (var i = 0; i < buttons_x; ++i)
 	{
 		buttons[i] = new Button(this.sprite_button_green, i * 96 + button_offset_x, button_offset_y, 32);
@@ -38,6 +41,17 @@ function Device() {
 		buttons[i + buttons_x] = new Button(this.sprite_button_red, i * 96 + button_offset_x, 96 + button_offset_y, 32);
 	}
 	this.randomizeControls();
+	this.setKeys();
+}
+
+Device.prototype.setKeys = function() {
+	var buttons = this.controls.buttons;
+	buttons[0].key = KEYS.Q;
+	buttons[1].key = KEYS.W;
+	buttons[2].key = KEYS.E;
+	buttons[3].key = KEYS.A;
+	buttons[4].key = KEYS.S;
+	buttons[5].key = KEYS.D;
 }
 
 Device.prototype.randomizeControls = function() {
@@ -62,28 +76,60 @@ Device.prototype.randomizeControls = function() {
 	}
 }
 
-Device.prototype.update = function() {
+Device.prototype.wasButtonPressed = function() {
 	var buttons = this.controls.buttons;
 	for (var i = 0; i < buttons.length; ++i) {
-		buttons[i].update();
+		if (buttons[i].justPressed()) {
+			return true;
+		}
 	}
-	this.player.update();
-	this.board.update();
-	this.wave.update();
+	return false;
+}
 
-	if (g_DEBUG && g_KEYSTATES.justPressed( KEYS.Z ) && !this.board.mouse_index.outOfBounds()) {
-		this.player.cell_index.equals(this.board.mouse_index);
+//horrible horrible code mess forming here...
+Device.prototype.updateGameState = function() {
+	var cell_index = this.player.cell_index;
+	var touched = this.board.tryTouch(cell_index.x, cell_index.y);
+	if (touched == "exit" ) {
+		this.timer.pause();
+		this.stage_clear = true;
 	}
 }
 
+Device.prototype.update = function() {
+	if (!(this.stage_clear || this.timer.timeOver())) {
+		var buttons = this.controls.buttons;
+		for (var i = 0; i < buttons.length; ++i) {
+			buttons[i].update();
+		}
+		this.player.update();
+		this.board.update();
+		this.wave.update();
+		this.updateGameState();
+	}
+
+	if (g_DEBUG) {
+		if (g_KEYSTATES.justPressed( KEYS.Z ) && !this.board.mouse_index.outOfBounds()) {
+			this.player.cell_index.equals(this.board.mouse_index);
+		}
+		if (g_KEYSTATES.justPressed( KEYS.PAUSE )) {
+			this.timer.togglePause();
+		}
+	}
+	this.timer.update();
+	if (this.wasButtonPressed()) this.timer.unpause();
+}
+
 Device.prototype.draw = function(ctx, xofs, yofs) {
-	this.sprite_background.draw(ctx, xofs, yofs, 1);
-	this.sprite_screen_back.draw(ctx, xofs, yofs, 1);
+	this.sprite_background.draw(ctx, xofs, yofs, 0);
+	this.sprite_screen_back.draw(ctx, xofs, yofs, 0);
 	
 	var buttons = this.controls.buttons;
 	for (var i = 0; i < buttons.length; ++i) {
 		buttons[i].draw(ctx, xofs, yofs);
 	}
+
+	this.timer.draw(ctx, xofs, yofs);
 }
 
 Device.prototype.drawDebug = function(ctx, xofs, yofs) {

@@ -1,8 +1,8 @@
 /* BOARDCELLINDEX ************************************************************/
 
-function BoardCellIndex() {
-	this.x = -1;
-	this.y = -1;
+function BoardCellIndex(x, y) {
+	this.x = (x !== undefined) ? x : -1;
+	this.y = (y !== undefined) ? y : -1;
 }
 
 BoardCellIndex.prototype.set = function(x, y) {
@@ -25,7 +25,7 @@ BoardCellIndex.prototype.outOfBounds = function() {
 }
 
 BoardCellIndex.prototype.toString = function() {
-	return "[" + this.x + "," + this.y + "]"
+	return "{ \"x\":" + this.x + ",\"y\":" + this.y + "}"
 }
 
 /* BOARD *********************************************************************/
@@ -38,7 +38,9 @@ function Board(posx, posy) {
 		cell_size_y: 64,
 		cells_x: 9,
 		cells_y: 6,
-		cells: []
+		cells: [],
+		start: new BoardCellIndex(0, 0),
+		exit: new BoardCellIndex(1, 0)
 	};
 	this.cell_frames = [];
 	var size = data.cells_x * data.cells_y;
@@ -48,7 +50,8 @@ function Board(posx, posy) {
 	}
 	this.data = data;
 
-	this.sprite_cells = new Sprite(g_ASSETMANAGER.getAsset("CELL_TEST"), 4, 4);
+	this.sprite_cells = new Sprite(g_ASSETMANAGER.getAsset("CELLS"), 4, 4);
+	this.sprite_exit = new Sprite(g_ASSETMANAGER.getAsset("EXIT"), 2, 1);
 	this.mouse_index = new BoardCellIndex();
 	this.edit_cell_type = 1;
 }
@@ -79,7 +82,7 @@ Board.prototype.updateCellFrames = function() {
 	}
 }
 
-Board.prototype.tryMove = function(a_cell_index, dx, dy) {
+Board.prototype.tryMove = function(dx, dy, a_cell_index) {
 	if (a_cell_index.outOfBounds()) return false;
 	var x = a_cell_index.x + dx;
 	var y = a_cell_index.y + dy;
@@ -89,9 +92,18 @@ Board.prototype.tryMove = function(a_cell_index, dx, dy) {
 	if (y < 0 || y >= data.cells_y) return false;
 	var i = x + y * data.cells_x;
 	if (data.cells[i]) return false;
-	
+
 	a_cell_index.set(x, y);
 	return true;
+}
+
+Board.prototype.tryTouch = function(x, y) {
+	var data = this.data;
+	if (data.exit.x == x && data.exit.y == y) {
+		return "exit";
+	}
+
+	return "";
 }
 
 Board.prototype.getTilePosition = function(x, y, a_pos) {
@@ -127,6 +139,12 @@ Board.prototype.updateEdit = function() {
 			data.cells[i] = (g_KEYSTATES.isPressed( KEYS.CTRL )) ? 0 : 1;
 			this.updateCellFrames();
 		}
+		if (g_KEYSTATES.justPressed( KEYS.Z )) {
+			data.start.equals(mi);
+		}
+		if (g_KEYSTATES.justPressed( KEYS.X )) {
+			data.exit.equals(mi);
+		}
 	}
 }
 
@@ -144,19 +162,24 @@ Board.prototype.draw = function(ctx, xofs, yofs) {
 			i = x + y * data.cells_x;
 			var frame = this.cell_frames[i];
 			if (frame > -1) {
-				xpos = x * data.cell_size_x + this.pos.x + xofs;
-				ypos = y * data.cell_size_y + this.pos.y + yofs;
+				var xpos = x * data.cell_size_x + this.pos.x + xofs;
+				var ypos = y * data.cell_size_y + this.pos.y + yofs;
 				this.sprite_cells.draw(ctx, xpos, ypos, frame);
 			}
 		}
+	}
+
+	if (!data.exit.outOfBounds()) {
+		var xpos = data.exit.x * data.cell_size_x + this.pos.x + xofs;
+		var ypos = data.exit.y * data.cell_size_y + this.pos.y + yofs;
+		this.sprite_exit.draw(ctx, xpos, ypos, 1);
 	}
 }
 
 Board.prototype.drawDebug = function(ctx, xofs, yofs) {
 	var data = this.data;
 	var mi = this.mouse_index;
-	if (!mi.outOfBounds())
-	{
+	if (!mi.outOfBounds()) {
 		xpos = mi.x * data.cell_size_x + this.pos.x + xofs;
 		ypos = mi.y * data.cell_size_y + this.pos.y + yofs;
 		this.sprite_cells.draw(ctx, xpos, ypos, 15);
@@ -173,6 +196,8 @@ Board.prototype.loadData = function(a_data) {
 	data.cells_y = a_data.cells_y || 6;
 	data.cell_size_x = a_data.cell_size_x || 64;
 	data.cell_size_y = a_data.cell_size_y || 64;
+	data.start.set(a_data.start.x, a_data.start.y);
+	data.exit.set(a_data.exit.x, a_data.exit.y);
 	data.cells = [];
 	for (var i = 0; i < a_data.cells.length; ++i) {
 		data.cells[i] = a_data.cells[i];
@@ -183,10 +208,8 @@ Board.prototype.loadData = function(a_data) {
 Board.prototype.serializeData = function() {
 	var data = this.data;
 	var s = "{\n";
-	//s += "\t\"cells_x\": " + data.cells_x + ",\n";
-	//s += "\t\"cells_y\": " + data.cells_y + ",\n";
-	//s += "\t\"cell_size_x\": " + data.cell_size_x + ",\n";
-	//s += "\t\"cell_size_y\": " + data.cell_size_y + ",\n";
+	s += "\t\"start\": " + data.start.toString() + ",\n";
+	s += "\t\"exit\": " + data.exit.toString() + ",\n";
 	s += "\t\"cells\": [\n";
 	
 	var x, y, i;
@@ -201,7 +224,7 @@ Board.prototype.serializeData = function() {
 	}
 	
 	s += "\t]\n";
-	s += "}";
+	s += "};";
 
 	return s;
 }
