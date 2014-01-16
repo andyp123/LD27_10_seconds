@@ -16,9 +16,7 @@ function game_queueData() {
 			"img/timer_back.png",
 			"img/numbers.png",
 			"img/numbers_small.png",
-			"img/objects.png",
-			"img/items.png",
-			"img/exit.png"
+			"img/objects.png"
 		];
 		g_ASSETMANAGER.queueAssets(data);
 		data = [
