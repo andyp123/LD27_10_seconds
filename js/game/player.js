@@ -9,14 +9,16 @@ function Player(board) {
 	};
 
 	this.cell_index = new BoardCellIndex();
-	this.sprite = new Sprite(g_ASSETMANAGER.getAsset("PLAYER"), 2, 1);
+	this.sprite = new Sprite(g_ASSETMANAGER.getAsset("PLAYER"), 3, 1);
 	this.sprite_frame = 0;
 	this.board = board;
+	this.keys = 0;
+	this.clocks = 0;
 }
 
 Player.prototype.gotoStart = function() {
 	if (this.board !== null) {
-		this.cell_index.equals(this.board.data.start);
+		this.board.findCellOfType(Board.CELL_TYPE_START, this.cell_index);
 	}
 }
 
@@ -30,16 +32,25 @@ Player.prototype.update = function() {
 	if (input["MOVE_UP"].justPressed()) dy +=1;
 
 	if (dx || dy) {
-		if (this.board.tryMove(dx, dy, this.cell_index)) {
-			this.sprite_frame = (this.sprite_frame == 1) ? 0 : 1;
-			g_SOUNDMANAGER.playSound("MOVE");
+		var move_type = this.board.tryMove(dx, dy, this.cell_index, this.keys);
+		if (move_type > 0) {
+			if (move_type == Board.MOVE_GET_CLOCK) {
+				this.clocks += 1;
+				g_SOUNDMANAGER.playSound("GET_CLOCK");
+			} else if (move_type == Board.MOVE_GET_KEY) {
+				this.keys += 1;
+				this.sprite_frame = 2; //key
+				g_SOUNDMANAGER.playSound("GET_KEY");
+			} else if (move_type == Board.MOVE_OK_UNLOCK) {
+				this.keys -= 1;
+				if (this.keys == 0) this.sprite_frame = 0;
+				g_SOUNDMANAGER.playSound("USE_KEY");
+			} else g_SOUNDMANAGER.playSound("MOVE");
+			if (this.keys == 0) this.sprite_frame = (this.sprite_frame == 1) ? 0 : 1;
 		} else {
 			g_SOUNDMANAGER.playSound("MOVE_FAIL");
 		}
 	}
-
-	//touch any entities (this will call the relevant on touch function)
-	//this.board.touch(this.cell_index);
 }
 
 Player.prototype.draw = function(ctx, xofs, yofs) {

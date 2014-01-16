@@ -16,6 +16,8 @@ function game_queueData() {
 			"img/timer_back.png",
 			"img/numbers.png",
 			"img/numbers_small.png",
+			"img/objects.png",
+			"img/items.png",
 			"img/exit.png"
 		];
 		g_ASSETMANAGER.queueAssets(data);
@@ -26,11 +28,11 @@ function game_queueData() {
 			"sfx/move.wav",
 			"sfx/move_fail.wav",
 			"sfx/get_key.wav",
-			"sfx/get_time.wav",
+			"sfx/get_clock.wav",
+			"sfx/use_key.wav",
 			"sfx/stage_clear.wav"
 		];
 		g_SOUNDMANAGER.loadSounds(data);
-		//g_SOUNDMANAGER.loadSound("BUTTON", "sfx/button.wav");
 }
 game_queueData();
 

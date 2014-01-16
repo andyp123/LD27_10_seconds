@@ -39,8 +39,6 @@ function Board(posx, posy) {
 		cells_x: 9,
 		cells_y: 6,
 		cells: [],
-		start: new BoardCellIndex(0, 0),
-		exit: new BoardCellIndex(1, 0)
 	};
 	this.cell_frames = [];
 	var size = data.cells_x * data.cells_y;
@@ -51,20 +49,37 @@ function Board(posx, posy) {
 	this.data = data;
 
 	this.sprite_cells = new Sprite(g_ASSETMANAGER.getAsset("CELLS"), 4, 4);
-	this.sprite_exit = new Sprite(g_ASSETMANAGER.getAsset("EXIT"), 2, 1);
+	this.sprite_objects = new Sprite(g_ASSETMANAGER.getAsset("OBJECTS"), 8, 1);
 	this.mouse_index = new BoardCellIndex();
 	this.edit_cell_type = 1;
 }
 
+Board.CELL_TYPE_EMPTY = 0;
+Board.CELL_TYPE_SOLID = 1;
+Board.CELL_TYPE_START = 2;
+Board.CELL_TYPE_EXIT = 3;
+Board.CELL_TYPE_LOCK = 4;
+Board.CELL_TYPE_KEY = 5;
+Board.CELL_TYPE_CLOCK = 6;
+
+Board.MOVE_FAIL_LOCK = -1;
+Board.MOVE_FAIL = 0;
+Board.MOVE_OK = 1;
+Board.MOVE_OK_UNLOCK = 2;
+Board.MOVE_GET_KEY = 3;
+Board.MOVE_GET_CLOCK = 4;
+Board.MOVE_TO_EXIT = 5;
+
 Board.prototype.getCellFrame = function(x, y) {
 	var data = this.data;
 
+	var func = function(x) { if (x != 1) return 0; return 1; };
 	var i = x + y * data.cells_x;
-	if(data.cells[i] == 1) return 0; //solid block uses frame 0
-	var cell_t = (y > 0)				? data.cells[x + (y - 1) * data.cells_x] : 1;
-	var cell_b = (y < data.cells_y - 1) ? data.cells[x + (y + 1) * data.cells_x] : 1;
-	var cell_l = (x > 0)				? data.cells[i - 1] : 1;
-	var cell_r = (x < data.cells_x - 1) ? data.cells[i + 1] : 1;
+	if (data.cells[i] == 1 ) return 0; //solid block uses frame 0
+	var cell_t = (y > 0)				? func(data.cells[x + (y - 1) * data.cells_x]) : 1;
+	var cell_b = (y < data.cells_y - 1) ? func(data.cells[x + (y + 1) * data.cells_x]) : 1;
+	var cell_l = (x > 0)				? func(data.cells[i - 1]) : 1;
+	var cell_r = (x < data.cells_x - 1) ? func(data.cells[i + 1]) : 1;
 	var frame = cell_t + cell_r * 2 + cell_b * 4 + cell_l * 8;
 	if (frame == 0) return -1;
 
@@ -82,28 +97,61 @@ Board.prototype.updateCellFrames = function() {
 	}
 }
 
-Board.prototype.tryMove = function(dx, dy, a_cell_index) {
-	if (a_cell_index.outOfBounds()) return false;
+Board.prototype.findCellOfType = function(cell_type, a_cell_index) {
+	var data = this.data;
+	var cells = data.cells;
+	var x, y, i;
+	for (i = 0; i < cells.length; ++i) {
+		if (cells[i] == cell_type) {
+			y = Math.floor(i / data.cells_x);
+			x = i - y * data.cells_x;
+			a_cell_index.set(x,y);
+			return true;
+		}
+	}
+	return false;
+}
+
+Board.prototype.tryMove = function(dx, dy, a_cell_index, keys_held) {
+	if (a_cell_index.outOfBounds()) return Board.MOVE_FAIL;
 	var x = a_cell_index.x + dx;
 	var y = a_cell_index.y + dy;
 
 	var data = this.data;
-	if (x < 0 || x >= data.cells_x) return false;
-	if (y < 0 || y >= data.cells_y) return false;
+	if (x < 0 || x >= data.cells_x) return Board.MOVE_FAIL;
+	if (y < 0 || y >= data.cells_y) return Board.MOVE_FAIL;
 	var i = x + y * data.cells_x;
-	if (data.cells[i]) return false;
 
-	a_cell_index.set(x, y);
-	return true;
-}
-
-Board.prototype.tryTouch = function(x, y) {
-	var data = this.data;
-	if (data.exit.x == x && data.exit.y == y) {
-		return "exit";
+	var move_type = Board.MOVE_OK;
+	switch (data.cells[i]) {
+		case Board.CELL_TYPE_SOLID:
+			return Board.MOVE_FAIL;
+		case Board.CELL_TYPE_LOCK:
+			if (keys_held < 1) return Board.MOVE_FAIL_LOCK;
+			data.cells[i] = Board.CELL_TYPE_EMPTY;
+			move_type = Board.MOVE_OK_UNLOCK;
+			break;
+		case Board.CELL_TYPE_KEY:
+			data.cells[i] = Board.CELL_TYPE_EMPTY;
+			move_type = Board.MOVE_GET_KEY;
+			break;
+		case Board.CELL_TYPE_CLOCK:
+			data.cells[i] = Board.CELL_TYPE_EMPTY;
+			move_type = Board.MOVE_GET_CLOCK;
+			break;
+		case Board.CELL_TYPE_EXIT:
+			move_type = Board.MOVE_TO_EXIT;
+			break;
 	}
 
-	return "";
+	a_cell_index.set(x, y);
+	return move_type;
+}
+
+Board.prototype.getCellType = function(x, y) {
+	var cells = this.data.cells;
+	var i = x + y * this.data.cells_x;
+	return cells[i];
 }
 
 Board.prototype.getTilePosition = function(x, y, a_pos) {
@@ -134,16 +182,15 @@ Board.prototype.updateEdit = function() {
 	if (!mi.outOfBounds())
 	{
 		var i = mi.x + mi.y * data.cells_x;
-		var cell_type = data.cells[i];
+
+		if (g_KEYSTATES.justPressed(KEYS.Z)) this.edit_cell_type -= 1;
+		if (g_KEYSTATES.justPressed(KEYS.X)) this.edit_cell_type += 1;
+		if (this.edit_cell_type < 1) this.edit_cell_type = 6;
+		if (this.edit_cell_type > 6) this.edit_cell_type = 1;
+
 		if (g_MOUSE.left.isPressed()) {
-			data.cells[i] = (g_KEYSTATES.isPressed( KEYS.CTRL )) ? 0 : 1;
+			data.cells[i] = (g_KEYSTATES.isPressed(KEYS.CTRL)) ? 0 : this.edit_cell_type;
 			this.updateCellFrames();
-		}
-		if (g_KEYSTATES.justPressed( KEYS.Z )) {
-			data.start.equals(mi);
-		}
-		if (g_KEYSTATES.justPressed( KEYS.X )) {
-			data.exit.equals(mi);
 		}
 	}
 }
@@ -156,23 +203,23 @@ Board.prototype.update = function() {
 
 Board.prototype.draw = function(ctx, xofs, yofs) {
 	var data = this.data;
+	var cells = data.cells;
 	var x, y, i;
 	for (y = 0; y < data.cells_y; ++y) {
 		for (x = 0; x < data.cells_x; ++x) {
 			i = x + y * data.cells_x;
 			var frame = this.cell_frames[i];
-			if (frame > -1) {
-				var xpos = x * data.cell_size_x + this.pos.x + xofs;
-				var ypos = y * data.cell_size_y + this.pos.y + yofs;
-				this.sprite_cells.draw(ctx, xpos, ypos, frame);
+			var xpos = x * data.cell_size_x + this.pos.x + xofs;
+			var ypos = y * data.cell_size_y + this.pos.y + yofs;
+			if (frame > -1) this.sprite_cells.draw(ctx, xpos, ypos, frame);
+			
+			//draw objects in cells
+			if(cells[i] > 1)
+			{
+				var frame = cells[i];
+				this.sprite_objects.draw(ctx, xpos, ypos, frame);
 			}
 		}
-	}
-
-	if (!data.exit.outOfBounds()) {
-		var xpos = data.exit.x * data.cell_size_x + this.pos.x + xofs;
-		var ypos = data.exit.y * data.cell_size_y + this.pos.y + yofs;
-		this.sprite_exit.draw(ctx, xpos, ypos, 1);
 	}
 }
 
@@ -182,7 +229,11 @@ Board.prototype.drawDebug = function(ctx, xofs, yofs) {
 	if (!mi.outOfBounds()) {
 		xpos = mi.x * data.cell_size_x + this.pos.x + xofs;
 		ypos = mi.y * data.cell_size_y + this.pos.y + yofs;
-		this.sprite_cells.draw(ctx, xpos, ypos, 15);
+		if (g_KEYSTATES.isPressed(KEYS.CTRL)) {
+			this.sprite_objects.draw(ctx, xpos, ypos, 0);
+		} else {
+			this.sprite_objects.draw(ctx, xpos, ypos, this.edit_cell_type);
+		}
 	}
 }
 
@@ -196,8 +247,6 @@ Board.prototype.loadData = function(a_data) {
 	data.cells_y = a_data.cells_y || 6;
 	data.cell_size_x = a_data.cell_size_x || 64;
 	data.cell_size_y = a_data.cell_size_y || 64;
-	data.start.set(a_data.start.x, a_data.start.y);
-	data.exit.set(a_data.exit.x, a_data.exit.y);
 	data.cells = [];
 	for (var i = 0; i < a_data.cells.length; ++i) {
 		data.cells[i] = a_data.cells[i];
@@ -208,8 +257,6 @@ Board.prototype.loadData = function(a_data) {
 Board.prototype.serializeData = function() {
 	var data = this.data;
 	var s = "{\n";
-	s += "\t\"start\": " + data.start.toString() + ",\n";
-	s += "\t\"exit\": " + data.exit.toString() + ",\n";
 	s += "\t\"cells\": [\n";
 	
 	var x, y, i;

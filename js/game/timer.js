@@ -14,6 +14,11 @@ function Timer(x, y, start_time) {
 	this.img_numbers_small = g_ASSETMANAGER.getAsset("NUMBERS_SMALL"); //??x32 each
 }
 
+Timer.prototype.addTimeClamped = function(time) {
+	this.seconds += time;
+	if (this.seconds < 0.0) this.seconds = 0.0;
+	if (this.seconds > this.start_time) this.seconds = this.start_time;
+}
 Timer.prototype.pause = function() { this.paused = true; }
 Timer.prototype.unpause = function() { this.paused = false; }
 Timer.prototype.togglePause = function() { this.paused = !this.paused; }

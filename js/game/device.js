@@ -29,7 +29,8 @@ function Device() {
 
 	//controls
 	this.controls = {
-		buttons: []
+		buttons: [],
+		reset_button: new Button(this.sprite_button_red, 540, 720, 32)
 	};
 	var buttons = this.controls.buttons;
 	var button_offset_x = 176;
@@ -44,7 +45,7 @@ function Device() {
 		buttons[i + buttons_x] = new Button(this.sprite_button_red, i * 96 + button_offset_x, 96 + button_offset_y, 32);
 	}
 	this.randomizeControls();
-	this.setKeys();
+	//this.setKeys();
 }
 
 Device.prototype.setKeys = function() {
@@ -85,38 +86,38 @@ Device.prototype.wasButtonPressed = function() {
 	return false;
 }
 
-//horrible horrible code mess forming here...
 Device.prototype.updateGameState = function() {
 	var cell_index = this.player.cell_index;
-	var touched = this.board.tryTouch(cell_index.x, cell_index.y);
-	switch (touched) {
-		case "exit":
-			this.timer.pause();
-			this.stage_clear = true;
-			g_SOUNDMANAGER.playSound("STAGE_CLEAR");
-			break;
-		case "item_key":
-			break;
-		case "item_timer":
-			break;
+	var cell_type = this.board.getCellType(cell_index.x, cell_index.y);
+	this.timer.addTimeClamped(this.player.clocks * 1.0);
+	this.player.clocks = 0;
+	if (cell_type == Board.CELL_TYPE_EXIT) {
+		this.timer.pause();
+		this.stage_clear = true;
+		g_SOUNDMANAGER.playSound("STAGE_CLEAR");
 	}
 }
 
 Device.prototype.update = function() {
+	var reset_button = this.controls.reset_button;
 	var buttons = this.controls.buttons;
 	for (var i = 0; i < buttons.length; ++i) {
 		buttons[i].update();
 	}
+	reset_button.update();
+	if (reset_button.justPressed()) {
+		this.current_stage = 0;
+		this.loadStage(this.current_stage);
+	}
+
 	this.timer.update();
 
 	if (this.stage_clear || this.timer.timeOver()) {
-		//deal with reset button
 		if (this.wasButtonPressed() && this.stage_clear) {
 			this.current_stage += 1;
-			this.loadStage( this.current_stage );
+			this.loadStage(this.current_stage);
 		}
 	} else {
-		console.log(this.timer.seconds);
 		if (this.wasButtonPressed()) this.timer.unpause();
 		this.player.update();
 		this.board.update();
@@ -125,10 +126,10 @@ Device.prototype.update = function() {
 	}
 
 	if (g_DEBUG) {
-		if (g_KEYSTATES.justPressed( KEYS.Z ) && !this.board.mouse_index.outOfBounds()) {
+		if (g_KEYSTATES.justPressed( KEYS.M ) && !this.board.mouse_index.outOfBounds()) {
 			this.player.cell_index.equals(this.board.mouse_index);
 		}
-		if (g_KEYSTATES.justPressed( KEYS.PAUSE )) {
+		if (g_KEYSTATES.justPressed( KEYS.G )) {
 			this.timer.togglePause();
 		}
 	}
@@ -156,6 +157,8 @@ Device.prototype.draw = function(ctx, xofs, yofs) {
 		buttons[i].draw(ctx, xofs, yofs);
 	}
 
+	this.controls.reset_button.draw(ctx, xofs, yofs);
+
 	this.timer.draw(ctx, xofs, yofs);
 }
 
@@ -164,6 +167,8 @@ Device.prototype.drawDebug = function(ctx, xofs, yofs) {
 	for (var i = 0; i < buttons.length; ++i) {
 		buttons[i].drawDebug(ctx, xofs, yofs);
 	}
+
+	this.controls.reset_button.drawDebug(ctx, xofs, yofs);
 }
 
 Device.prototype.addDrawCall = function() {
