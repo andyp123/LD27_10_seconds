@@ -8,7 +8,6 @@ function game_queueData() {
 			"img/screen_back.png",
 			"img/screen_overlay.png",
 			"img/screen_border.png",
-			"img/buttons.png",
 			"img/button_red.png",
 			"img/button_green.png",
 			"img/player.png",
