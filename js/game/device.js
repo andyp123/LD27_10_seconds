@@ -21,9 +21,11 @@ function Device() {
 
 	this.wave = new Wave(96, 96, 672, 480, 64);
 	this.timer = new Timer(520, 560, 10.0);
+	this.timer.play_sound = true;
 
 	this.current_stage = 0;
 	this.stage_clear = false;
+	this.stage_fail = false;
 
 	//controls
 	this.controls = {
@@ -60,20 +62,16 @@ Device.prototype.randomizeControls = function() {
 	var input = this.player.input;
 
 	var available_buttons = [];
-	for(var i = 0; i < buttons.length; ++i) available_buttons[i] = i;
+	for (var i = 0; i < buttons.length; ++i) available_buttons[i] = i;
 	
 	for (control_id in input) {
 		//bind button to control
 		var button_id = available_buttons[ Math.round( Math.random() * (available_buttons.length - 1)) ];
 		input[control_id] = buttons[button_id];
-		//buttons[button_id].enable();
 
 		//remove button_id from available_buttons
 		var index = available_buttons.indexOf(button_id);
 		available_buttons.splice(index, 1);
-	}
-	for (var i = 0; i < available_buttons.length; ++i) {
-		//buttons[available_buttons[i]].disable();
 	}
 }
 
@@ -91,9 +89,16 @@ Device.prototype.wasButtonPressed = function() {
 Device.prototype.updateGameState = function() {
 	var cell_index = this.player.cell_index;
 	var touched = this.board.tryTouch(cell_index.x, cell_index.y);
-	if (touched == "exit" ) {
-		this.timer.pause();
-		this.stage_clear = true;
+	switch (touched) {
+		case "exit":
+			this.timer.pause();
+			this.stage_clear = true;
+			g_SOUNDMANAGER.playSound("STAGE_CLEAR");
+			break;
+		case "item_key":
+			break;
+		case "item_timer":
+			break;
 	}
 }
 
@@ -104,17 +109,19 @@ Device.prototype.update = function() {
 	}
 	this.timer.update();
 
-	if (!(this.stage_clear || this.timer.timeOver())) {
+	if (this.stage_clear || this.timer.timeOver()) {
+		//deal with reset button
+		if (this.wasButtonPressed() && this.stage_clear) {
+			this.current_stage += 1;
+			this.loadStage( this.current_stage );
+		}
+	} else {
+		console.log(this.timer.seconds);
 		if (this.wasButtonPressed()) this.timer.unpause();
 		this.player.update();
 		this.board.update();
 		this.wave.update();
 		this.updateGameState();
-	} else {
-		if (this.wasButtonPressed()) {
-			if (this.stage_clear) this.current_stage += 1;
-			this.loadStage( this.current_stage );
-		}
 	}
 
 	if (g_DEBUG) {
@@ -130,7 +137,7 @@ Device.prototype.update = function() {
 Device.prototype.loadStage = function(stage_number) {
 	var stages = g_STAGES;
 	if (stage_number >= 0 && stage_number < stages.length) {
-		this.board.loadData( g_STAGES[stage_number] );
+		this.board.loadData( stages[stage_number] );
 		this.player.gotoStart();
 		this.randomizeControls();
 		this.timer.reset();

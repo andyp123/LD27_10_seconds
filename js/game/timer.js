@@ -6,6 +6,7 @@ function Timer(x, y, start_time) {
 	this.start_time = start_time;
 	this.seconds = start_time;
 	this.paused = true;
+	this.play_sound = false;
 
 	this.sprite_back = new Sprite(g_ASSETMANAGER.getAsset("TIMER_BACK")); //192x96
 	this.sprite_back.setOffset(Sprite.ALIGN_TOP_LEFT);
@@ -20,14 +21,18 @@ Timer.prototype.reset = function() {
 	this.paused = true;
 	this.seconds = this.start_time;
 }
-Timer.prototype.timeOver = function() { this.seconds == 0.0; }
+Timer.prototype.timeOver = function() { return (this.seconds == 0.0); }
 
 Timer.prototype.update = function() {
 	if (!this.paused) {
+		var prev_time_integer = Math.floor(this.seconds);
 		this.seconds -= g_FRAMETIME_S;
 		if (this.seconds <= 0.0) {
 			this.seconds = 0.0;
 			this.paused = true;
+			if (this.play_sound) g_SOUNDMANAGER.playSound("TIME_OVER");
+		} else if(this.play_sound && Math.floor(this.seconds) < prev_time_integer) {
+			g_SOUNDMANAGER.playSound("TIME_TICK");
 		}
 	}
 }

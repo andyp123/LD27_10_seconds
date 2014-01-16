@@ -29,8 +29,13 @@ Player.prototype.update = function() {
 	if (input["MOVE_DOWN"].justPressed()) dy -=1;
 	if (input["MOVE_UP"].justPressed()) dy +=1;
 
-	if ((dx || dy) && this.board.tryMove(dx, dy, this.cell_index)) {
-		this.sprite_frame = (this.sprite_frame == 1) ? 0 : 1;
+	if (dx || dy) {
+		if (this.board.tryMove(dx, dy, this.cell_index)) {
+			this.sprite_frame = (this.sprite_frame == 1) ? 0 : 1;
+			g_SOUNDMANAGER.playSound("MOVE");
+		} else {
+			g_SOUNDMANAGER.playSound("MOVE_FAIL");
+		}
 	}
 
 	//touch any entities (this will call the relevant on touch function)

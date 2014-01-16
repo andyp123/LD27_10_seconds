@@ -20,10 +20,17 @@ function game_queueData() {
 		];
 		g_ASSETMANAGER.queueAssets(data);
 		data = [
-			//"sfx/button22.wav"
+			"sfx/button.wav",
+			"sfx/time_tick.wav",
+			"sfx/time_over.wav",
+			"sfx/move.wav",
+			"sfx/move_fail.wav",
+			"sfx/get_key.wav",
+			"sfx/get_time.wav",
+			"sfx/stage_clear.wav"
 		];
 		g_SOUNDMANAGER.loadSounds(data);
-		g_SOUNDMANAGER.loadSound("BUTTON", "sfx/button12.wav");
+		//g_SOUNDMANAGER.loadSound("BUTTON", "sfx/button.wav");
 }
 game_queueData();
 
