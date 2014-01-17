@@ -89,7 +89,7 @@ Device.prototype.wasButtonPressed = function() {
 Device.prototype.updateGameState = function() {
 	var cell_index = this.player.cell_index;
 	var cell_type = this.board.getCellType(cell_index.x, cell_index.y);
-	this.timer.addTimeClamped(this.player.clocks * 1.0);
+	this.timer.addTimeClamped(this.player.clocks * 2.0);
 	this.player.clocks = 0;
 	if (cell_type == Board.CELL_TYPE_EXIT) {
 		this.timer.pause();
