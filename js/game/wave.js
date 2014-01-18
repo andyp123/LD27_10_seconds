@@ -1,33 +1,44 @@
 /* WAVE **********************************************************************/
 
-function Wave(minx, miny, maxx, maxy, num_points) {
+function Wave(minx, miny, maxx, maxy, num_points, timer) {
 	this.min = new Vector2(minx, miny);
 	this.max = new Vector2(maxx, maxy);
 	this.displacement_y = []; //values between -1 and 1.
 	for (var i = 0; i < num_points; ++i) {
-		this.displacement_y[i] = Math.cos(20.0 * (i / num_points) - 1.0);
+		this.displacement_y[i] = 0.0;
 	}
+	this.timer = timer;
+	this.color = "rgb(130,190,170)";
 
-	this.height = 64.0;
+	this.height = 128.0;
 }
 
 Wave.prototype.update = function() {
+	var timer = this.timer;
 	var num_points = this.displacement_y.length;
-	var shift = g_GAMETIME_MS / 1000.0;
-	var start = Math.floor((g_GAMETIME_MS % 2000) / 1000.0 * num_points);
-	for (var i = 0; i < num_points; ++i) {
-		this.displacement_y[i] = 0.125 * Math.cos(10.0 * (i / num_points) - shift);
-	}
+	var time = 1.0 - (timer.seconds - Math.floor(timer.seconds));
 
-	
-	if(start < num_points)	this.displacement_y[start] -= Math.random() * 0.125 + 0.75;
+	if (timer.paused) {
+		for (var i = 0; i < num_points; ++i) {
+			this.displacement_y[i] = 0.0;
+		}
+	} else {
+		var scale = (1.0 - Util.clampScaled(time, 0.0, 0.25)) * 0.25;
+		var pulse_width = 0.125;
+		for (var i = 0; i < num_points; ++i) {
+			var offset = i / num_points;
+			var x = Util.clampScaled(offset, time - pulse_width, time + pulse_width);
+			x = Util.clamp(x, 0.0, 1.0);
+			this.displacement_y[i] = (Math.random() * scale) - Util.bellCurve(x);
+		}
+	}
 }
 
 Wave.prototype.draw = function(ctx, xofs, yofs) {
 	var ctx_lineWidth = ctx.lineWidth;
 	var ctx_strokeStyle = ctx.strokeStyle;
 	ctx.lineWidth = 4;
-	ctx.strokeStyle = "rgb(171,255,228)";
+	ctx.strokeStyle = this.color;
 
 	var drawLine = Util.drawLine;
 

@@ -22,6 +22,12 @@ Player.prototype.gotoStart = function() {
 	}
 }
 
+Player.prototype.resetState = function() {
+	this.sprite_frame = 0;
+	this.keys = 0;
+	this.clocks = 0;
+}
+
 Player.prototype.update = function() {
 	var input = this.input;
 	var dx = 0;

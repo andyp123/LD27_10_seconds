@@ -9,6 +9,8 @@ function Button(sprite, posx, posy, radius, key) {
 	this.radius = radius;
 	this.state = new ButtonState();
 	this.enabled = true;
+	this.toggle = false; //toggle is a bit of a crap hack
+	this.sound_id = "BUTTON";
 
 	this.key = key || null;
 }
@@ -44,18 +46,26 @@ Button.prototype.update = function() {
 
 	var press = false;
 	var release = false;
-	if (!state.isPressed()) {
+	if (!state.isPressed() || this.toggle) {
 		if (this.key && g_KEYSTATES.justPressed(this.key)) press = true;
 		if (mouse.left.justPressed() && (x * x + y * y < this.radius * this.radius)) press = true;
 	} else {
 		if (!mouse.left.isPressed() && (!this.key || !g_KEYSTATES.isPressed(this.key))) release = true;
 	}
 	
-	if (press) {
-		this.state.press();
-		g_SOUNDMANAGER.playSound("BUTTON");
+	if (this.toggle) {
+		if (press) {
+			if (this.isPressed()) this.state.release();
+			else this.state.press();
+			g_SOUNDMANAGER.playSound(this.sound_id);
+		}
+	} else {
+		if (press) {
+			this.state.press();
+			g_SOUNDMANAGER.playSound(this.sound_id);
+		}
+		if (release) this.state.release();
 	}
-	if (release) this.state.release();
 }
 
 Button.prototype.draw = function(ctx, xofs, yofs) {

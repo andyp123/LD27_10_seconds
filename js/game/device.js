@@ -7,45 +7,54 @@ function Device() {
 	this.sprite_screen_border = new Sprite(g_ASSETMANAGER.getAsset("SCREEN_BORDER"));
 	this.sprite_button_green = new Sprite(g_ASSETMANAGER.getAsset("BUTTON_GREEN"), 2, 1);
 	this.sprite_button_red = new Sprite(g_ASSETMANAGER.getAsset("BUTTON_RED"), 2, 1);
+	this.sprite_button_power = new Sprite(g_ASSETMANAGER.getAsset("BUTTON_POWER"), 2, 1);
+	this.sprite_congratulations = new Sprite(g_ASSETMANAGER.getAsset("CONGRATULATIONS"), 1, 1);
 
 	this.sprite_background.setOffset(Sprite.ALIGN_TOP_LEFT);
 	this.sprite_screen_back.setOffset(Sprite.ALIGN_TOP_LEFT, 64, 64);
 	this.sprite_screen_overlay.setOffset(Sprite.ALIGN_TOP_LEFT, 64, 64);
 	this.sprite_screen_border.setOffset(Sprite.ALIGN_TOP_LEFT);
-
-	this.board = new Board(128, 128);
-	this.board.loadData( g_STAGES[0] );
-
-	this.player = new Player(this.board);
-	this.player.gotoStart();
-
-	this.wave = new Wave(96, 96, 672, 480, 64);
-	this.timer = new Timer(520, 560, 10.0);
-	this.timer.play_sound = true;
+	this.sprite_congratulations.setOffset(Sprite.ALIGN_CENTER, 384, 288)
 
 	this.current_stage = 0;
 	this.stage_clear = false;
-	this.stage_fail = false;
+	this.game_clear = false;
+	this.show_congratulations = false;
+
+	this.board = new Board(128, 128);
+	this.board.loadData( g_STAGES[0] );
+	this.player = new Player(this.board);
+	this.player.gotoStart();
+
+	this.timer = new Timer(504, 560, 10.0);
+	this.timer.play_sound = true;
+	this.power = false;
+
+	this.wave = new Wave(96, 96, 672, 480, 64, this.timer);
 
 	//controls
 	this.controls = {
 		buttons: [],
-		reset_button: new Button(this.sprite_button_red, 540, 720, 32)
+		power_button: new Button(this.sprite_button_power, 80, 728, 16)
 	};
+	this.controls.power_button.toggle = true;
+	this.controls.power_button.sound_id = "BUTTON_POWER";
 	var buttons = this.controls.buttons;
-	var button_offset_x = 176;
+	var button_offset_x = 192;
 	var button_offset_y = 608;
 	var buttons_x = 3;
-	for (var i = 0; i < buttons_x; ++i)
+	var i;
+	for (i = 0; i < buttons_x; ++i)
 	{
 		buttons[i] = new Button(this.sprite_button_green, i * 96 + button_offset_x, button_offset_y, 32);
 	}
-	for (var i = 0; i < buttons_x; ++i)
+	for (i = 0; i < buttons_x; ++i)
 	{
 		buttons[i + buttons_x] = new Button(this.sprite_button_red, i * 96 + button_offset_x, 96 + button_offset_y, 32);
 	}
+	for (i = 0; i < buttons.length; ++i) buttons[i].disable();
 	this.randomizeControls();
-	//this.setKeys();
+	this.setKeys();
 }
 
 Device.prototype.setKeys = function() {
@@ -99,15 +108,23 @@ Device.prototype.updateGameState = function() {
 }
 
 Device.prototype.update = function() {
+	var power_button = this.controls.power_button;
 	var reset_button = this.controls.reset_button;
 	var buttons = this.controls.buttons;
 	for (var i = 0; i < buttons.length; ++i) {
 		buttons[i].update();
 	}
-	reset_button.update();
-	if (reset_button.justPressed()) {
-		this.current_stage = 0;
-		this.loadStage(this.current_stage);
+	power_button.update();
+	if (power_button.justPressed() || power_button.justReleased()) {
+		this.togglePower();
+	}
+
+	if (!this.power) return;
+
+	if (this.game_clear && this.wasButtonPressed()) {
+		this.board.loadData(g_CONGRATULATIONS_STAGE);
+		this.show_congratulations = true;
+		g_SOUNDMANAGER.playSound("CONGRATULATIONS");
 	}
 
 	this.timer.update();
@@ -115,7 +132,9 @@ Device.prototype.update = function() {
 	if (this.stage_clear || this.timer.timeOver()) {
 		if (this.wasButtonPressed() && this.stage_clear) {
 			this.current_stage += 1;
-			this.loadStage(this.current_stage);
+			if (this.current_stage >= g_STAGES.length) {
+				this.game_clear = true;
+			} else this.loadStage(this.current_stage);
 		}
 	} else {
 		if (this.wasButtonPressed()) this.timer.unpause();
@@ -135,14 +154,46 @@ Device.prototype.update = function() {
 	}
 }
 
+Device.prototype.togglePower = function() {
+	var power = this.controls.power_button.isPressed();
+	if (power) this.powerOn();
+	else this.powerOff();
+}
+
+Device.prototype.powerOn = function() {
+	this.power = true;
+	this.timer.power = true;
+	var buttons = this.controls.buttons;
+	var i;
+	for (i = 0; i < buttons.length; ++i) {
+		buttons[i].enable();
+	}
+
+	this.loadStage(0);
+}
+
+Device.prototype.powerOff = function() {
+	this.power = false;
+	this.timer.power = false;
+	var buttons = this.controls.buttons;
+	var i;
+	for (i = 0; i < buttons.length; ++i) {
+		buttons[i].disable();
+	}
+}
+
 Device.prototype.loadStage = function(stage_number) {
 	var stages = g_STAGES;
 	if (stage_number >= 0 && stage_number < stages.length) {
 		this.board.loadData( stages[stage_number] );
 		this.player.gotoStart();
+		this.player.resetState();
 		this.randomizeControls();
 		this.timer.reset();
+		this.current_stage = stage_number;
 		this.stage_clear = false;
+		this.game_clear = false;
+		this.show_congratulations = false;
 	} else {
 		console.log("Device.prototype.loadStage: ERROR: stage_number out of bounds.");
 	}
@@ -157,7 +208,7 @@ Device.prototype.draw = function(ctx, xofs, yofs) {
 		buttons[i].draw(ctx, xofs, yofs);
 	}
 
-	this.controls.reset_button.draw(ctx, xofs, yofs);
+	this.controls.power_button.draw(ctx, xofs, yofs);
 
 	this.timer.draw(ctx, xofs, yofs);
 }
@@ -168,14 +219,20 @@ Device.prototype.drawDebug = function(ctx, xofs, yofs) {
 		buttons[i].drawDebug(ctx, xofs, yofs);
 	}
 
-	this.controls.reset_button.drawDebug(ctx, xofs, yofs);
+	this.controls.power_button.drawDebug(ctx, xofs, yofs);
 }
 
 Device.prototype.addDrawCall = function() {
 	g_RENDERLIST.addObject(this, -1, 0);
-	g_RENDERLIST.addObject(this.board, 0, 0);
-	g_RENDERLIST.addObject(this.player, 0, 0);
-	//g_RENDERLIST.addObject(this.wave, 0, 5);
+	if (this.power) {
+		if (!this.show_congratulations) {
+			g_RENDERLIST.addObject(this.wave, 0, 0);
+			g_RENDERLIST.addObject(this.board, 0, 1);
+			g_RENDERLIST.addObject(this.player, 0, 2);
+		} else {
+			g_RENDERLIST.addObject(this.sprite_congratulations);
+		}
+	}
 	g_RENDERLIST.addObject(this.sprite_screen_overlay, 1, 0);
 	g_RENDERLIST.addObject(this.sprite_screen_border, 1, 1);
 }

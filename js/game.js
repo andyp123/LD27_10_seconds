@@ -5,11 +5,13 @@
 function game_queueData() {
 		var data = [
 			"img/background.png",
+			"img/congratulations.png",
 			"img/screen_back.png",
 			"img/screen_overlay.png",
 			"img/screen_border.png",
 			"img/button_red.png",
 			"img/button_green.png",
+			"img/button_power.png",
 			"img/player.png",
 			"img/cells.png",
 			"img/timer_back.png",
@@ -19,6 +21,7 @@ function game_queueData() {
 		];
 		g_ASSETMANAGER.queueAssets(data);
 		data = [
+			"sfx/button_power.wav",
 			"sfx/button.wav",
 			"sfx/time_tick.wav",
 			"sfx/time_over.wav",
@@ -27,7 +30,8 @@ function game_queueData() {
 			"sfx/get_key.wav",
 			"sfx/get_clock.wav",
 			"sfx/use_key.wav",
-			"sfx/stage_clear.wav"
+			"sfx/stage_clear.wav",
+			"sfx/congratulations.wav"
 		];
 		g_SOUNDMANAGER.loadSounds(data);
 }
@@ -80,6 +84,9 @@ function game_main() {
 	if (g_DEBUG) {
 		if (g_MOUSE.left.isPressed() && g_KEYSTATES.isPressed( KEYS.C )) {
 			g_CAMERA.pos.addXY(g_MOUSE.dx, g_MOUSE.dy);
+		}
+		if (g_KEYSTATES.isPressed( KEYS.SHIFT ) && g_KEYSTATES.justPressed( KEYS.C )) {
+			g_CAMERA.pos.set(0, 0);
 		}
 	}
 

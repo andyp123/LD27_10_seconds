@@ -7,6 +7,7 @@ function Timer(x, y, start_time) {
 	this.seconds = start_time;
 	this.paused = true;
 	this.play_sound = false;
+	this.power = false;
 
 	this.sprite_back = new Sprite(g_ASSETMANAGER.getAsset("TIMER_BACK")); //192x96
 	this.sprite_back.setOffset(Sprite.ALIGN_TOP_LEFT);
@@ -52,11 +53,13 @@ Timer.prototype.draw = function(ctx, xofs, yofs) {
 	var ms_str = "" + milliseconds;
 	while( ms_str.length < 3 ) ms_str = "0" + ms_str;
 
-	this.sprite_back.draw(ctx, x, y + yofs);
-	x += 96; y += 24;
-	Util.drawNumber(ctx, x, y, seconds, this.img_numbers, 10);
-	x += 76; y += 8;
-	Util.drawNumber(ctx, x, y, ms_str, this.img_numbers_small, 10); //ms_str should really be a number, but it will work anyway :)
+	this.sprite_back.draw(ctx, x, y);
+	if (this.power) {
+		x += 96; y += 24;
+		Util.drawNumber(ctx, x, y, seconds, this.img_numbers, 10);
+		x += 76; y += 8;
+		Util.drawNumber(ctx, x, y, ms_str, this.img_numbers_small, 10); //ms_str should really be a number, but it will work anyway :)
+	}
 }
 
 Timer.prototype.drawDebug = function(ctx, xofs, yofs) {
