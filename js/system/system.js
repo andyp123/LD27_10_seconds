@@ -128,13 +128,11 @@ Screen.prototype.addTouchEventListeners = function() {
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
-		console.log("TOUCHSTART (0155) | " + touches[0].identifier);
 		if (touches.length > 0 && mouse.touchID == -1) {
 			mouse.x = touches[0].pageX - g_SCREEN.posX;
 			mouse.y = touches[0].pageY - g_SCREEN.posY;
 			mouse.left.press();
 			mouse.touchID = touches[0].identifier;
-			console.log("OK");
 		}
 	}, false);
 
@@ -143,13 +141,10 @@ Screen.prototype.addTouchEventListeners = function() {
 
 		var mouse = g_MOUSE;
 		var touches = event.changedTouches;
-		console.log("TOUCHEND | " + touches[0].identifier);
 		for (var i = 0; i < touches.length; ++i) {
-			console.log(touches[i].identifier + " | touchID: " + mouse.touchID);
 			if (touches[i].identifier == mouse.touchID) {
 				mouse.left.release();
 				mouse.touchID = -1;
-				console.log("OK");
 				return;
 			}
 		}
@@ -160,12 +155,10 @@ Screen.prototype.addTouchEventListeners = function() {
 
 		var mouse = g_MOUSE;
 		var touches = event.changedTouches;
-		console.log("TOUCHMOVE | " + touches[0].identifier);
 		for (var i = 0; i < touches.length; ++i) {
 			if (touches[i].identifier == mouse.touchID) {
 				mouse.x = touches[i].pageX - g_SCREEN.posX;
 				mouse.y = touches[i].pageY - g_SCREEN.posY;
-				console.log("OK");
 				return;
 			}
 		}
