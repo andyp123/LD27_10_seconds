@@ -145,18 +145,21 @@ Screen.prototype.addTouchEventListeners = function() {
 	this.canvas.addEventListener('touchend', function(event) {
 		event.preventDefault();
 
-		var debug_string = "TOUCHEND";
+		var debug_string = "TOUCHEND: ";
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
 		for (var i = 0; i < touches.length; ++i) {
-			if (touches[i].identifier == mouse.touchID) return;
-		}		
+			if (touches[i].identifier == mouse.touchID) {
+				mouse.left.release();
+				mouse.touchID = -1;
 
-		mouse.left.release();
-		mouse.touchID = -1;
+				debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
+				document.getElementById('debug').innerHTML = debug_string;
 
-		document.getElementById('debug').innerHTML = debug_string;
+				return;
+			}
+		}
 	}, false);
 
 	this.canvas.addEventListener('touchmove', function(event) {
