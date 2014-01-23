@@ -319,6 +319,8 @@ Mouse.prototype.toString = function() {
 	else rv += "[IN]";
 	if (this.left.state) rv += ", LMB = " + this.left.duration();
 	if (this.right.state) rv += ", RMB = " + this.right.duration();
+	if (this.touchID !== undefined) rv += ", touchID = " + this.touchID;
+	else rv += ", [TOUCH DISABLED]";
 	return rv;
 }
 
