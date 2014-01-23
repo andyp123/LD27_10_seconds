@@ -151,6 +151,8 @@ Screen.prototype.init = function(id, width, height) {
 			}, false);
 
 			this.canvas.addEventListener( 'touchmove', function(event) {
+				event.preventDefault();
+
 				var debug_string = "TOUCHMOVE: ";
 
 				var mouse = g_MOUSE;
@@ -168,11 +170,10 @@ Screen.prototype.init = function(id, width, height) {
 				}
 			}, false);
 
-			// disable accidental right click menu activation
+			// disable accidental right click menu activation (hopefully)
 			this.canvas.addEventListener( 'onContextMenu', function(event) {
-				return false;
+				event.preventDefault();
 			}, false);
-
 		}
 
 		return true;
