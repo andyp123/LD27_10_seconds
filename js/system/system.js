@@ -126,7 +126,7 @@ Screen.prototype.addTouchEventListeners = function() {
 	this.canvas.addEventListener('touchstart', function(event) {
 		event.preventDefault();
 
-		var debug_string = "TOUCHSTART 0127: ";
+		var debug_string = "TOUCHSTART 0139: ";
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
@@ -146,10 +146,12 @@ Screen.prototype.addTouchEventListeners = function() {
 		event.preventDefault();
 
 		var debug_string = "TOUCHEND: ";
+		document.getElementById('debug').innerHTML = debug_string;
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
 		for (var i = 0; i < touches.length; ++i) {
+			console.log(touches[i].identifier);
 			document.getElementById('debug').innerHTML = "mouse.touchID = " + mouse.touchID + " touches[i].identifier = " + touches[i].identifier;
 			if (touches[i].identifier == mouse.touchID) {
 				mouse.left.release();
