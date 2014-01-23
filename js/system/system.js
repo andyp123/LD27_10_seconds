@@ -125,7 +125,7 @@ Screen.prototype.addTouchEventListeners = function() {
 
 	this.canvas.addEventListener('touchstart', function(event) {
 		event.preventDefault();
-		
+
 		var debug_string = "TOUCHSTART: ";
 
 		var mouse = g_MOUSE;
@@ -136,7 +136,7 @@ Screen.prototype.addTouchEventListeners = function() {
 			mouse.left.press();
 			mouse.touchID = touches[0].identifier;
 
-			debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
+			debug_string += "ID = " + touches[0].identifier + " X = " + mouse.x + " Y = " + mouse.y;
 		}
 
 		document.getElementById('debug').innerHTML = debug_string;
@@ -145,21 +145,18 @@ Screen.prototype.addTouchEventListeners = function() {
 	this.canvas.addEventListener('touchend', function(event) {
 		event.preventDefault();
 
-		var debug_string = "TOUCHEND: ";
+		var debug_string = "TOUCHEND";
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
 		for (var i = 0; i < touches.length; ++i) {
-			if (touches[i].identifier == mouse.touchID) {
-				mouse.left.release();
-				mouse.touchID = -1;
+			if (touches[i].identifier == mouse.touchID) return;
+		}		
 
-				debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
-				document.getElementById('debug').innerHTML = debug_string;
+		mouse.left.release();
+		mouse.touchID = -1;
 
-				return;
-			}
-		}
+		document.getElementById('debug').innerHTML = debug_string;
 	}, false);
 
 	this.canvas.addEventListener('touchmove', function(event) {
