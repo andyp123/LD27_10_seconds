@@ -110,76 +110,83 @@ Screen.prototype.init = function(id, width, height) {
 		this.posX = this.canvas.offsetLeft;
 		this.posY = this.canvas.offsetTop;
 		
-		//hacked in single touch support to emulate mouse
-		if (this.useTouch) {
-			var mouse = g_MOUSE;
-			mouse.touchID = -1;
-
-			this.canvas.addEventListener( 'touchstart', function(event) {
-				var debug_string = "TOUCHSTART: ";
-
-				var mouse = g_MOUSE;
-				var touches = event.targetTouches;
-				if (touches.length > 0 && mouse.touchID == -1) {
-					mouse.x = touches[0].pageX - g_SCREEN.posX;
-					mouse.y = touches[0].pageY - g_SCREEN.posY;
-					mouse.left.press();
-					mouse.touchID = touches[0].identifier;
-
-					debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
-				}
-
-				document.getElementById('debug').innerHTML = debug_string;
-			}, false);
-
-			this.canvas.addEventListener( 'touchend', function(event) {
-				var debug_string = "TOUCHEND: ";
-
-				var mouse = g_MOUSE;
-				var touches = event.targetTouches;
-				for (var i = 0; i < touches.length; ++i) {
-					if (touches[i].identifier == mouse.touchID) {
-						mouse.left.release();
-
-						debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
-						document.getElementById('debug').innerHTML = debug_string;
-
-						mouse.touchID = -1;
-						return;
-					}
-				}
-			}, false);
-
-			this.canvas.addEventListener( 'touchmove', function(event) {
-				event.preventDefault();
-
-				var debug_string = "TOUCHMOVE: ";
-
-				var mouse = g_MOUSE;
-				var touches = event.targetTouches;
-				for (var i = 0; i < touches.length; ++i) {
-					if (touches[i].identifier == mouse.touchID) {
-						mouse.x = touches[i].pageX - g_SCREEN.posX;
-						mouse.y = touches[i].pageY - g_SCREEN.posY;
-
-						debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
-						document.getElementById('debug').innerHTML = debug_string;
-
-						return;
-					}
-				}
-			}, false);
-
-			// disable accidental right click menu activation (hopefully)
-			this.canvas.addEventListener( 'onContextMenu', function(event) {
-				event.preventDefault();
-			}, false);
-		}
+		if (this.useTouch) this.addTouchEventListeners();
 
 		return true;
 	}
 	alert("canvas with id \'" + id + "\' could not be found");
 	return false;
+}
+
+//hacked in single touch support to emulate mouse
+Screen.prototype.addTouchEventListeners = function() {
+	var mouse = g_MOUSE;
+	mouse.touchID = -1;
+
+	this.canvas.addEventListener('touchstart', function(event) {
+		var debug_string = "TOUCHSTART: ";
+
+		var mouse = g_MOUSE;
+		var touches = event.targetTouches;
+		if (touches.length > 0) {
+			mouse.x = touches[0].pageX - g_SCREEN.posX;
+			mouse.y = touches[0].pageY - g_SCREEN.posY;
+			mouse.left.press();
+			mouse.touchID = touches[0].identifier;
+
+			debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
+		}
+
+		document.getElementById('debug').innerHTML = debug_string;
+	}, false);
+
+	this.canvas.addEventListener('touchend', function(event) {
+		var debug_string = "TOUCHEND: ";
+
+		var mouse = g_MOUSE;
+		var touches = event.targetTouches;
+		for (var i = 0; i < touches.length; ++i) {
+			if (touches[i].identifier == mouse.touchID) {
+				mouse.left.release();
+				mouse.touchID = -1;
+
+				debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
+				document.getElementById('debug').innerHTML = debug_string;
+
+				return;
+			}
+		}
+	}, false);
+
+	this.canvas.addEventListener('touchmove', function(event) {
+		event.preventDefault();
+
+		var debug_string = "TOUCHMOVE: ";
+
+		var mouse = g_MOUSE;
+		var touches = event.targetTouches;
+		for (var i = 0; i < touches.length; ++i) {
+			if (touches[i].identifier == mouse.touchID) {
+				mouse.x = touches[i].pageX - g_SCREEN.posX;
+				mouse.y = touches[i].pageY - g_SCREEN.posY;
+
+				debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
+				document.getElementById('debug').innerHTML = debug_string;
+
+				return;
+			}
+		}
+	}, false);
+
+	// disable accidental right click menu activation (hopefully)
+	this.canvas.addEventListener('onContextMenu', function(event) {
+		event.preventDefault();
+	}, false);
+
+	this.canvas.addEventListener('onblur', function(event) {
+		var mouse = g_MOUSE;
+		mouse.touchID = -1;
+	});	
 }
 
 Screen.prototype.clear = function() {
