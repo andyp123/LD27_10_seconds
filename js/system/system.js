@@ -128,7 +128,7 @@ Screen.prototype.addTouchEventListeners = function() {
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
-		console.log("TOUCHSTART (0150) | " + touches[0].identifier);
+		console.log("TOUCHSTART (0155) | " + touches[0].identifier);
 		if (touches.length > 0 && mouse.touchID == -1) {
 			mouse.x = touches[0].pageX - g_SCREEN.posX;
 			mouse.y = touches[0].pageY - g_SCREEN.posY;
@@ -142,7 +142,7 @@ Screen.prototype.addTouchEventListeners = function() {
 		event.preventDefault();
 
 		var mouse = g_MOUSE;
-		var touches = event.targetTouches;
+		var touches = event.changedTouches;
 		console.log("TOUCHEND | " + touches[0].identifier);
 		for (var i = 0; i < touches.length; ++i) {
 			console.log(touches[i].identifier + " | touchID: " + mouse.touchID);
@@ -159,7 +159,7 @@ Screen.prototype.addTouchEventListeners = function() {
 		event.preventDefault();
 
 		var mouse = g_MOUSE;
-		var touches = event.targetTouches;
+		var touches = event.changedTouches;
 		console.log("TOUCHMOVE | " + touches[0].identifier);
 		for (var i = 0; i < touches.length; ++i) {
 			if (touches[i].identifier == mouse.touchID) {
