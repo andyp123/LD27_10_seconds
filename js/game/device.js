@@ -122,7 +122,6 @@ Device.prototype.update = function() {
 	if (!this.power) return;
 
 	if (this.game_clear && this.wasButtonPressed()) {
-		this.board.loadData(g_CONGRATULATIONS_STAGE);
 		this.show_congratulations = true;
 		g_SOUNDMANAGER.playSound("CONGRATULATIONS");
 	}
@@ -130,6 +129,7 @@ Device.prototype.update = function() {
 	this.timer.update();
 
 	if (this.stage_clear || this.timer.timeOver()) {
+		this.wave.update(); // set to flatline
 		if (this.wasButtonPressed() && this.stage_clear) {
 			this.current_stage += 1;
 			if (this.current_stage >= g_STAGES.length) {
@@ -151,6 +151,14 @@ Device.prototype.update = function() {
 		if (g_KEYSTATES.justPressed( KEYS.G )) {
 			this.timer.togglePause();
 		}
+	}
+
+	if (g_KEYSTATES.isPressed(KEYS.SHIFT) && g_KEYSTATES.justPressed(KEYS.RIGHT)) {
+		this.current_stage += 1;
+		if (this.current_stage >= g_STAGES.length) {
+			this.show_congratulations = true;
+			g_SOUNDMANAGER.playSound("CONGRATULATIONS");
+		} else this.loadStage(this.current_stage);
 	}
 }
 
