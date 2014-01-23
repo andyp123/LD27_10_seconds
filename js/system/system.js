@@ -126,7 +126,7 @@ Screen.prototype.addTouchEventListeners = function() {
 	this.canvas.addEventListener('touchstart', function(event) {
 		event.preventDefault();
 
-		var debug_string = "TOUCHSTART: ";
+		var debug_string = "TOUCHSTART 0121: ";
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
