@@ -113,14 +113,14 @@ Screen.prototype.init = function(id, width, height) {
 		//hacked in single touch support to emulate mouse
 		if (this.useTouch) {
 			var mouse = g_MOUSE;
-			mouse.touchID = 0;
+			mouse.touchID = -1;
 
 			this.canvas.addEventListener( 'touchstart', function(event) {
 				var debug_string = "TOUCHSTART: ";
 
 				var mouse = g_MOUSE;
 				var touches = event.targetTouches;
-				if (touches.length > 0 && mouse.touchID == 0) {
+				if (touches.length > 0 && mouse.touchID == -1) {
 					mouse.x = touches[0].pageX - g_SCREEN.posX;
 					mouse.y = touches[0].pageY - g_SCREEN.posY;
 					mouse.left.press();
@@ -144,7 +144,7 @@ Screen.prototype.init = function(id, width, height) {
 						debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
 						document.getElementById('debug').innerHTML = debug_string;
 
-						mouse.touchID = 0
+						mouse.touchID = -1;
 						return;
 					}
 				}
