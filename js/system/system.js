@@ -116,7 +116,7 @@ Screen.prototype.init = function(id, width, height) {
 			mouse.touchID = 0;
 
 			this.canvas.addEventListener( 'touchstart', function(event) {
-				document.getElementById('keystates').innerHTML = "TOUCHSTART";
+				document.getElementById('debug').innerHTML = "TOUCHSTART";
 				var mouse = g_MOUSE;
 				var touches = event.targetTouches;
 				if (touches.length > 0 && mouse.touchID === 0) {
@@ -126,7 +126,7 @@ Screen.prototype.init = function(id, width, height) {
 			}, false);
 
 			this.canvas.addEventListener( 'touchend', function(event) {
-				document.getElementById('keystates').innerHTML = "TOUCHEND";
+				document.getElementById('debug').innerHTML = "TOUCHEND";
 				var mouse = g_MOUSE;
 				var touches = event.targetTouches;
 				for (var i = 0; i < touches.length; ++i) {
@@ -139,7 +139,7 @@ Screen.prototype.init = function(id, width, height) {
 			}, false);
 
 			this.canvas.addEventListener( 'touchmove', function(event) {
-				document.getElementById('keystates').innerHTML = "TOUCHMOVE";
+				document.getElementById('debug').innerHTML = "TOUCHMOVE";
 				var mouse = g_MOUSE;
 				var touches = event.targetTouches;
 				for (var i = 0; i < touches.length; ++i) {
