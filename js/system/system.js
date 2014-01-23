@@ -125,18 +125,15 @@ Screen.prototype.addTouchEventListeners = function() {
 
 	this.canvas.addEventListener('touchstart', function(event) {
 		event.preventDefault();
-
-		var debug_string = "TOUCHSTART 0139: ";
+		console.log("TOUCHSTART (0145)");
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
-		if (touches.length > 0) {
+		if (touches.length > 0 && mouse.touchID == -1) {
 			mouse.x = touches[0].pageX - g_SCREEN.posX;
 			mouse.y = touches[0].pageY - g_SCREEN.posY;
 			mouse.left.press();
 			mouse.touchID = touches[0].identifier;
-
-			debug_string += "ID = " + touches[0].identifier + " X = " + mouse.x + " Y = " + mouse.y;
 		}
 
 		document.getElementById('debug').innerHTML = debug_string;
@@ -144,22 +141,15 @@ Screen.prototype.addTouchEventListeners = function() {
 
 	this.canvas.addEventListener('touchend', function(event) {
 		event.preventDefault();
-
-		var debug_string = "TOUCHEND: ";
-		document.getElementById('debug').innerHTML = debug_string;
+		console.log("TOUCHEND");
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
 		for (var i = 0; i < touches.length; ++i) {
-			console.log(touches[i].identifier);
-			document.getElementById('debug').innerHTML = "mouse.touchID = " + mouse.touchID + " touches[i].identifier = " + touches[i].identifier;
+			console.log(touches[i].identifier + " | touchID: " + mouse.touchID);
 			if (touches[i].identifier == mouse.touchID) {
 				mouse.left.release();
 				mouse.touchID = -1;
-
-				//debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
-				//document.getElementById('debug').innerHTML = debug_string;
-
 				return;
 			}
 		}
@@ -167,8 +157,7 @@ Screen.prototype.addTouchEventListeners = function() {
 
 	this.canvas.addEventListener('touchmove', function(event) {
 		event.preventDefault();
-
-		var debug_string = "TOUCHMOVE: ";
+		console.log("TOUCHMOVE");
 
 		var mouse = g_MOUSE;
 		var touches = event.targetTouches;
@@ -176,10 +165,6 @@ Screen.prototype.addTouchEventListeners = function() {
 			if (touches[i].identifier == mouse.touchID) {
 				mouse.x = touches[i].pageX - g_SCREEN.posX;
 				mouse.y = touches[i].pageY - g_SCREEN.posY;
-
-				debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
-				document.getElementById('debug').innerHTML = debug_string;
-
 				return;
 			}
 		}
