@@ -139,8 +139,6 @@ Screen.prototype.init = function(id, width, height) {
 				var touches = event.targetTouches;
 				for (var i = 0; i < touches.length; ++i) {
 					if (touches[i].identifier == mouse.touchID) {
-						mouse.x = touches[i].pageX - g_SCREEN.posX;
-						mouse.y = touches[i].pageY - g_SCREEN.posY;
 						mouse.left.release();
 
 						debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
@@ -168,6 +166,11 @@ Screen.prototype.init = function(id, width, height) {
 						return;
 					}
 				}
+			}, false);
+
+			// disable accidental right click menu activation
+			this.canvas.addEventListener( 'onContextMenu', function(event) {
+				return false;
 			}, false);
 
 		}
