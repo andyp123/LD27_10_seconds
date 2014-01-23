@@ -124,6 +124,8 @@ Screen.prototype.addTouchEventListeners = function() {
 	mouse.touchID = -1;
 
 	this.canvas.addEventListener('touchstart', function(event) {
+		event.preventDefault();
+		
 		var debug_string = "TOUCHSTART: ";
 
 		var mouse = g_MOUSE;
@@ -134,13 +136,15 @@ Screen.prototype.addTouchEventListeners = function() {
 			mouse.left.press();
 			mouse.touchID = touches[0].identifier;
 
-			debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
+			debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
 		}
 
 		document.getElementById('debug').innerHTML = debug_string;
 	}, false);
 
 	this.canvas.addEventListener('touchend', function(event) {
+		event.preventDefault();
+
 		var debug_string = "TOUCHEND: ";
 
 		var mouse = g_MOUSE;
@@ -170,7 +174,7 @@ Screen.prototype.addTouchEventListeners = function() {
 				mouse.x = touches[i].pageX - g_SCREEN.posX;
 				mouse.y = touches[i].pageY - g_SCREEN.posY;
 
-				debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
+				debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
 				document.getElementById('debug').innerHTML = debug_string;
 
 				return;
