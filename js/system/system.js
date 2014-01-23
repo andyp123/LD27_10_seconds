@@ -120,10 +120,10 @@ Screen.prototype.init = function(id, width, height) {
 
 				var mouse = g_MOUSE;
 				var touches = event.targetTouches;
-				if (touches.length > 0 && mouse.touchID === 0) {
+				if (touches.length > 0 && mouse.touchID == 0) {
 					mouse.x = touches[0].pageX - g_SCREEN.posX;
 					mouse.y = touches[0].pageY - g_SCREEN.posY;
-					mouse.left.Press();
+					mouse.left.press();
 					mouse.touchID = touches[0].identifier;
 
 					debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
@@ -141,7 +141,7 @@ Screen.prototype.init = function(id, width, height) {
 					if (touches[i].identifier == mouse.touchID) {
 						mouse.x = touches[i].pageX - g_SCREEN.posX;
 						mouse.y = touches[i].pageY - g_SCREEN.posY;
-						mouse.left.Release();
+						mouse.left.release();
 
 						debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
 						document.getElementById('debug').innerHTML = debug_string;
@@ -164,7 +164,7 @@ Screen.prototype.init = function(id, width, height) {
 
 						debug_string += "ID = " + mouse.touchID + " X = " + mouse.x + " Y = " + mouse.y;
 						document.getElementById('debug').innerHTML = debug_string;
-						
+
 						return;
 					}
 				}
