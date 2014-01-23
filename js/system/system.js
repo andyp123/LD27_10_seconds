@@ -155,8 +155,8 @@ Screen.prototype.addTouchEventListeners = function() {
 				mouse.left.release();
 				mouse.touchID = -1;
 
-				debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
-				document.getElementById('debug').innerHTML = debug_string;
+				//debug_string += "ID = " + touches[i].identifier + " X = " + mouse.x + " Y = " + mouse.y;
+				//document.getElementById('debug').innerHTML = debug_string;
 
 				return;
 			}
