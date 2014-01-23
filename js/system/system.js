@@ -16,10 +16,10 @@ TODO:
 +look into RequestAnimationFrame support for screen
 */
 
-//objects in global namespacemo
+//objects in global namespace
 var g_KEYSTATES = new KeyStates();
 var g_MOUSE = new Mouse();
-var g_SCREEN = new Screen();
+var g_SCREEN = new Screen(true);
 var g_RENDERLIST = new RenderList();
 var g_ASSETMANAGER = new AssetManager();
 var g_SOUNDMANAGER = new SoundManager();
@@ -90,7 +90,7 @@ function sys_main() {
 /* SCREEN **********************************************************************
 A simple container for basic screen related functions
 */
-function Screen() {
+function Screen(useTouch) {
 	this.canvas = null;
 	this.context = null;
 	this.width = 0;
@@ -99,6 +99,7 @@ function Screen() {
 	this.posY = 0;
 	this.clearColor = "rgb(64,64,64)";
 	this.clearAlpha = 1.0; //unused
+	this.useTouch = useTouch || false;
 }
 
 Screen.prototype.init = function(id, width, height) {
@@ -108,6 +109,47 @@ Screen.prototype.init = function(id, width, height) {
 		this.setSize(width, height);
 		this.posX = this.canvas.offsetLeft;
 		this.posY = this.canvas.offsetTop;
+		
+		//hacked in single touch support to emulate mouse
+		if (this.useTouch) {
+			var mouse = g_MOUSE;
+			mouse.touchID = 0;
+
+			this.canvas.addEventListener( 'touchstart', function(event) {
+				var mouse = g_MOUSE;
+				var touches = event.targetTouches;
+				if (touches.length > 0 && mouse.touchID === 0) {
+					mouse.touchID = touches[0].identifier;
+					mouse.left.Press();
+				}
+			}, false);
+
+			this.canvas.addEventListener( 'touchend', function(event) {
+				var mouse = g_MOUSE;
+				var touches = event.targetTouches;
+				for (var i = 0; i < touches.length; ++i) {
+					if (touches[i].identifier == mouse.touchID) {
+						mouse.touchID = 0
+						mouse.left.Release();
+						return;
+					}
+				}
+			}, false);
+
+			this.canvas.addEventListener( 'touchmove', function(event) {
+				var mouse = g_MOUSE;
+				var touches = event.targetTouches;
+				for (var i = 0; i < touches.length; ++i) {
+					if (touches[i].identifier == mouse.touchID) {
+						mouse.x = touches[i].pageX - g_SCREEN.posX;
+						mouse.y = touches[i].pageY - g_SCREEN.posY;
+						return;
+					}
+				}
+			}, false);
+
+		}
+
 		return true;
 	}
 	alert("canvas with id \'" + id + "\' could not be found");
@@ -203,6 +245,8 @@ KeyStates.prototype.releaseAll = function() {
 		this.states[i].release();
 		this.states[i].lastHoldDuration = 0;
 	}
+	this.anyKeyJustPressed = false;
+	this.anyKeyJustReleased = false;
 }
 
 KeyStates.prototype.getState = function(keyCode) {
@@ -328,6 +372,7 @@ document.onmousemove = function(e) {
 	}
 }
 
+//clear event states when the window loses focus
 window.onblur = function() {
 	g_KEYSTATES.releaseAll();
 	g_MOUSE.releaseAll();
