@@ -82,7 +82,6 @@ function game_main() {
 	if (g_DEBUG) {
 		document.getElementById('keystates').innerHTML = g_MOUSE.toString() + "<br>" + g_KEYSTATES.toString() + "<br><b>Camera</b><br>" + g_CAMERA.toString();
 
-
 		if (g_MOUSE.left.isPressed() && g_KEYSTATES.isPressed( KEYS.C )) {
 			g_CAMERA.pos.addXY(g_MOUSE.dx, g_MOUSE.dy);
 		}
